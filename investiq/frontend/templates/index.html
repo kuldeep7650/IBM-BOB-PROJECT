@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InvestIQ — Sequential AI Investment Analyst</title>
+  <meta name="description" content="InvestIQ: AI-powered sequential investment analysis platform. Data gathering, KPI extraction, competitor benchmarking, sentiment analysis, risk detection and investment recommendation." />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- InvestIQ Styles -->
+  <link rel="stylesheet" href="/static/css/Style.css" />
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ══════════════════════════════════════════════════════
+       NAVBAR
+  ══════════════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-logo">IQ</div>
+      <div>
+        <div class="brand-name">InvestIQ</div>
+        <div class="brand-sub">Sequential AI Investment Analyst</div>
+      </div>
+    </div>
+    <div class="navbar-right">
+      <span class="demo-badge">⚡ Demo Mode</span>
+      <span class="last-updated" id="last-updated" title="Last analysis timestamp">—</span>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ── Search & Launch ─────────────────────────────── -->
+    <section class="search-section">
+      <div class="search-title">Intelligent Investment Analysis</div>
+      <div class="search-subtitle">Select a company, configure your analysis and let the sequential AI agent pipeline run automatically.</div>
+
+      <div class="search-form">
+        <div class="form-group">
+          <label class="form-label" for="ticker-input">Stock Ticker</label>
+          <input
+            id="ticker-input"
+            class="ticker-input"
+            type="text"
+            placeholder="e.g. AAPL"
+            maxlength="10"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="period-select">Analysis Period</label>
+          <select id="period-select" class="period-select">
+            <option value="1y">1 Year</option>
+            <option value="3y">3 Years</option>
+            <option value="5y" selected>5 Years</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="justify-content:flex-end;">
+          <label class="form-label" style="opacity:0;">Action</label>
+          <button id="run-btn" class="btn btn-primary btn-lg" onclick="runAnalysis()">
+            ▶ Run Investment Analysis
+          </button>
+        </div>
+
+        <div class="form-group" style="justify-content:flex-end;">
+          <label class="form-label" style="opacity:0;">Report</label>
+          <button class="btn btn-secondary" onclick="downloadReport()" title="Download HTML report (printable as PDF)">
+            ⬇ Download Report
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div class="form-label" style="margin-bottom:8px;">Quick Select:</div>
+        <div class="quick-tickers" id="quick-tickers">
+          <!-- Populated dynamically -->
+          <button class="quick-ticker-btn" onclick="setTicker('AAPL')">AAPL</button>
+          <button class="quick-ticker-btn" onclick="setTicker('MSFT')">MSFT</button>
+          <button class="quick-ticker-btn" onclick="setTicker('GOOGL')">GOOGL</button>
+          <button class="quick-ticker-btn" onclick="setTicker('TSLA')">TSLA</button>
+          <button class="quick-ticker-btn" onclick="setTicker('AMZN')">AMZN</button>
+        </div>
+      </div>
+
+      <div class="disclaimer-bar" style="margin-top:16px;margin-bottom:0;">
+        ⚠️ <b>Responsible Investment Disclaimer:</b> This application provides AI-generated analytical insights
+        for educational and informational purposes only. It is not financial advice. Users should conduct
+        their own research or consult a qualified financial professional before making investment decisions.
+      </div>
+    </section>
+
+    <!-- ── Empty State ─────────────────────────────────── -->
+    <div id="empty-state" class="empty-state">
+      <div class="empty-state-icon">📊</div>
+      <h3>No analysis yet</h3>
+      <p>Enter a stock ticker above and click <b>Run Investment Analysis</b> to start the sequential AI pipeline.</p>
+      <p style="margin-top:8px;font-size:12px;">Supported demo tickers: AAPL · MSFT · GOOGL · TSLA · AMZN</p>
+    </div>
+
+    <!-- ── Pipeline Progress ────────────────────────────── -->
+    <section class="pipeline-section" id="pipeline-section" style="display:none;">
+      <div class="pipeline-title">
+        <h2>⚙️ AI Analysis Pipeline</h2>
+        <span class="badge badge-running" style="animation: none;">Running...</span>
+      </div>
+      <p style="margin-bottom:16px;font-size:13px;color:var(--text-secondary);">
+        The sequential agent is executing 9 analysis stages. Each stage depends on the output of the previous.
+      </p>
+      <div class="pipeline-grid" id="pipeline-grid">
+        <!-- Populated dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════
+         RESULTS SECTION (shown after analysis)
+    ══════════════════════════════════════════════════ -->
+    <section id="results-section" style="display:none;">
+
+      <!-- Demo badge -->
+      <div id="results-demo-badge" class="badge badge-demo" style="display:none;margin-bottom:12px;">
+        ⚡ DEMO DATA — Not real-time market data
+      </div>
+
+      <!-- Hero Recommendation Card -->
+      <div id="hero-card">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpi-cards">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- ── Tabs ────────────────────────────────────── -->
+      <div class="tabs-nav" id="tabs-nav">
+        <button class="tab-btn active" data-tab="overview"     onclick="switchTab('overview')">Overview</button>
+        <button class="tab-btn"        data-tab="financials"   onclick="switchTab('financials')">Financials</button>
+        <button class="tab-btn"        data-tab="ratios"       onclick="switchTab('ratios')">Ratios</button>
+        <button class="tab-btn"        data-tab="competitors"  onclick="switchTab('competitors')">Competitors</button>
+        <button class="tab-btn"        data-tab="sentiment"    onclick="switchTab('sentiment')">Sentiment</button>
+        <button class="tab-btn"        data-tab="risks"        onclick="switchTab('risks')">Risks</button>
+        <button class="tab-btn"        data-tab="forecast"     onclick="switchTab('forecast')">Forecast</button>
+        <button class="tab-btn"        data-tab="trace"        onclick="switchTab('trace')">Agent Trace</button>
+      </div>
+
+      <!-- Tab panels -->
+      <div id="tab-overview"     class="tab-panel active"></div>
+      <div id="tab-financials"   class="tab-panel"></div>
+      <div id="tab-ratios"       class="tab-panel"></div>
+      <div id="tab-competitors"  class="tab-panel"></div>
+      <div id="tab-sentiment"    class="tab-panel"></div>
+      <div id="tab-risks"        class="tab-panel"></div>
+      <div id="tab-forecast"     class="tab-panel"></div>
+      <div id="tab-trace"        class="tab-panel"></div>
+
+      <!-- Footer action -->
+      <div style="text-align:center;margin:32px 0 16px;padding-top:16px;border-top:1px solid var(--border);">
+        <button class="btn btn-green btn-lg" onclick="downloadReport()">
+          ⬇ Generate &amp; Download Investment Report
+        </button>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-muted);">Opens as HTML. Use browser Print → Save as PDF for a portable report.</p>
+      </div>
+
+    </section><!-- /results-section -->
+
+  </main><!-- /main-content -->
+
+  <!-- Footer -->
+  <footer style="text-align:center;padding:20px;border-top:1px solid var(--border);color:var(--text-muted);font-size:12px;">
+    InvestIQ · Sequential AI Investment Analyst · Demo Mode Active ·
+    AI-generated outputs are for educational purposes only, not financial advice.
+  </footer>
+
+</div><!-- /app-shell -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Application script -->
+<script src="/static/js/app.js"></script>
+</body>
+</html>
